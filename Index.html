@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Рисование</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #ffffff;
+      touch-action: none;
+    }
+
+    canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      background: #ffffff;
+      cursor: crosshair;
+    }
+
+    #eraser {
+      position: fixed;
+      right: 15px;
+      top: 15px;
+      z-index: 10;
+
+      width: 54px;
+      height: 54px;
+      border: 2px solid #dddddd;
+      border-radius: 12px;
+      background: #ffffff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      font-size: 24px;
+      cursor: pointer;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #eraser:active {
+      background: #eeeeee;
+      transform: scale(0.95);
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+
+  <button id="eraser" type="button" aria-label="Очистить рисунок"
+          title="Очистить">
+    🧽
+  </button>
+
+  <script>
+    const canvas = document.getElementById("canvas");
+    const context = canvas.getContext("2d");
+    const eraserButton = document.getElementById("eraser");
+
+    let drawing = false;
+    let lastX = 0;
+    let lastY = 0;
+
+    function resizeCanvas() {
+      const image = canvas.toDataURL();
+
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.lineWidth = 5;
+      context.lineCap = "round";
+      context.lineJoin = "round";
+      context.strokeStyle = "#000000";
+
+      const savedImage = new Image();
+      savedImage.onload = function () {
+        context.drawImage(savedImage, 0, 0, canvas.width, canvas.height);
+      };
+      savedImage.src = image;
+    }
+
+    function getPosition(event) {
+      const rect = canvas.getBoundingRect
+        ? canvas.getBoundingRect()
+        : canvas.getBoundingClientRect();
+
+      return {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top
+      };
+    }
+
+    function startDrawing(event) {
+      event.preventDefault();
+      drawing = true;
+
+      const position = getPosition(event);
+      lastX = position.x;
+      lastY = position.y;
+
+      context.beginPath();
+      context.moveTo(lastX, lastY);
+      context.lineTo(lastX + 0.1, lastY + 0.1);
+      context.stroke();
+    }
+
+    function draw(event) {
+      if (!drawing) return;
+
+      event.preventDefault();
+      const position = getPosition(event);
+
+      context.beginPath();
+      context.moveTo(lastX, lastY);
+      context.lineTo(position.x, position.y);
+      context.stroke();
+
+      lastX = position.x;
+      lastY = position.y;
+    }
+
+    function stopDrawing(event) {
+      if (!drawing) return;
+      if (event) event.prevent;
+      drawing = false;
+      context.closePath();
+    }
+
+    canvas.addEventListener("mousedown", startDrawing);
+    canvas.addEventListener("mousemove", draw);
+    canvas.addEventListener("mouseup", stopDrawing);
+    canvas.addEventListener("mouseleave", stopDrawing);
+
+    canvas.addEventListener("touchstart", startDrawing, { passive: false });
+    canvas.addEventListener("touchmove", draw, { passive: false });
+    canvas.addEventListener("touchend", stopDrawing);
+    canvas.addEventListener("touchcancel", stopDrawing);
+
+    eraserButton.addEventListener("click", function () {
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+    });
+
+    window.addEventListener("resize", resizeCanvas);
+
+    resizeCanvas();
+  </script>
+</body>
+</html>
