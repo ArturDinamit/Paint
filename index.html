@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Рисование</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #fff;
+      touch-action: none;
+    }
+
+    canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      cursor: crosshair;
+      touch-action: none;
+    }
+
+    #clear {
+      position: fixed;
+      z-index: 1;
+      top: 15px;
+      right: 15px;
+      width: 50px;
+      height: 50px;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: 0 2px 8px #0002;
+      font-size: 24px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+  <button id="clear" type="button" aria-label="Очистить рисунок"
+          title="Очистить">🧽</button>
+
+  <script>
+    const canvas = document.getElementById("canvas");
+    const context = canvas.getContext("2d");
+    let drawing = false;
+
+    function resizeCanvas() {
+      const ratio = window.devicePixelRatio || 1;
+
+      canvas.width = window.innerWidth * ratio;
+      canvas.height = window.innerHeight * ratio;
+
+      context.setTransform(ratio, 0, 0, ratio, 0, 0);
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, window.innerWidth, window.innerHeight);
+
+      context.strokeStyle = "#000000";
+      context.lineWidth = 5;
+      context.lineCap = "round";
+      context.lineJoin = "round";
+    }
+
+    canvas.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      drawing = true;
+      canvas.setPointerCapture(event.pointerId);
+      context.beginPath();
+      context.moveTo(event.offsetX, event.offsetY);
+    });
+
+    canvas.addEventListener("pointermove", (event) => {
+      if (!drawing) return;
+      event.preventDefault();
+      context.lineTo(event.offsetX, event.offsetY);
+      context.stroke();
+    });
+
+    function stopDrawing() {
+      drawing = false;
+      context.closePath();
+    }
+
+    canvas.addEventListener("pointerup", stopDrawing);
+    canvas.addEventListener("pointercancel", stopDrawing);
+
+    document.getElementById("clear").addEventListener("click", () => {
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, window.innerWidth, window.innerHeight);
+    });
+
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+  </script>
+</body>
+</html>
